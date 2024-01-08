@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import pyautogui
 import numpy as np
 import cv2
+import keyboard
 
 from settings import *
 from data.capture_screen import capture_screen
@@ -12,7 +13,16 @@ model = OsuModel()
 model.load_state_dict(torch.load('osu_model.pth'))
 model.eval()
 
-c = 0
+active = False
+
+
+def toggle():
+    global active
+    active = not active
+    print("Resumed" if active else "Paused")
+
+
+keyboard.add_hotkey("ctrl+shift+a", toggle)
 
 
 def main():
@@ -28,19 +38,15 @@ def main():
 
         img = torch.from_numpy(img)
 
-        pred = model(img)
+        if active:
+            pred = model(img)
 
-        x, y = F.softmax(pred).detach().numpy()[0]
-        print(x, y)
-        x, y = x * w, y * h
-        print(x, y)
+            x, y = F.softmax(pred).detach().numpy()[0]
+            print(x, y)
+            x, y = x * w, y * h
+            print(x, y)
 
-        pyautogui.click(x, y)
-
-        c += 1
-
-        if c >= 100:
-            break
+            pyautogui.click(x, y)
 
 
 if __name__ == "__main__":

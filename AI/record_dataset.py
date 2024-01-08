@@ -1,5 +1,4 @@
 import cv2
-import time
 import keyboard
 
 from settings import *
@@ -9,18 +8,20 @@ from util.loader import save_data
 active = False
 
 
-def toogle():
+def toggle():
     global active
     active = not active
+    print("Resumed" if active else "Paused")
 
 
-keyboard.add_hotkey("ctrl+shift+a", toogle)
+keyboard.add_hotkey("ctrl+shift+a", toggle)
 
 
 def main():
     mode = input("select mode (t/v)")
     path = TRAIN_DIR if "t" in mode else TEST_DIR
-    print(path)
+    print("Train mode" if "t" in mode else "Validation mode")
+    print("Press ctrl+shift+a to toggle")
     while True:
         if active:
             frame = capture_screen()
