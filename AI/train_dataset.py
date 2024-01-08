@@ -37,7 +37,7 @@ def count_parameters(model):
 
 
 def accuracy(pred, label):
-    answer = F.softmax(pred.detach()).numpy().argmax(1) == label.numpy().argmax(1)
+    answer = F.softmax(pred.detach(), dim=1).numpy().argmax(1) == label.numpy().argmax(1)
 
     return answer.mean()
 
@@ -76,7 +76,7 @@ for epoch in range(epochs):
         acc = accuracy(pred, label)
         tr_acc += acc
 
-        pbar.set_description(f'Training Epoch [{epoch + 1}/{epochs}] loss: {loss_item:.5f}, accuracy: {acc:.3f}')
+        pbar.set_description(f'Training Epoch [{epoch + 1}/{epochs}]\t loss: {loss_item:.5f}, accuracy: {acc:.3f}')
 
     avg_loss = tr_loss / len(train_loader)
     avg_acc = tr_acc / len(train_loader)
@@ -100,7 +100,7 @@ for epoch in range(epochs):
             acc = accuracy(pred, label)
             val_acc += acc
 
-            pbar.set_description(f'Validating Epoch [{epoch + 1}/{epochs}] loss: {loss_item:.5f}, accuracy: {acc:.3f}')
+            pbar.set_description(f'Validating Epoch [{epoch + 1}/{epochs}]\t loss: {loss_item:.5f}, accuracy: {acc:.3f}')
 
     avg_val_loss = val_loss / len(test_loader)
     avg_val_acc = val_acc / len(test_loader)
@@ -110,25 +110,25 @@ for epoch in range(epochs):
     val_loss_values.append(avg_val_loss)
     val_acc_values.append(avg_val_acc)
 
+torch.save(model.state_dict(), 'osu_model.pth')
 
 # Accuracy
-plt.figure(figsize=(10, 5))
-plt.plot(range(1, epochs + 1), train_acc_values, label="Training Accuracy", color='tab:red')
-plt.plot(range(1, epochs + 1), val_acc_values, label="Validation Accuracy", color='tab:blue')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.title('Training and Validation Accuracy')
-plt.show()
+fig, axs = plt.subplots(1, 2, figsize=(20, 5))
+
+# Accuracy
+axs[0].plot(range(1, epochs + 1), train_acc_values, label="Training Accuracy", color='tab:red')
+axs[0].plot(range(1, epochs + 1), val_acc_values, label="Validation Accuracy", color='tab:blue')
+axs[0].set_xlabel('Epoch')
+axs[0].set_ylabel('Accuracy')
+axs[0].legend()
+axs[0].set_title('Training and Validation Accuracy')
 
 # Loss
-plt.figure(figsize=(10, 5))
-plt.plot(range(1, epochs + 1), train_loss_values, label="Training Loss", color='tab:red')
-plt.plot(range(1, epochs + 1), val_loss_values, label="Validation Loss", color='tab:blue')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.title('Training and Validation Loss')
-plt.show()
+axs[1].plot(range(1, epochs + 1), train_loss_values, label="Training Loss", color='tab:red')
+axs[1].plot(range(1, epochs + 1), val_loss_values, label="Validation Loss", color='tab:blue')
+axs[1].set_xlabel('Epoch')
+axs[1].set_ylabel('Loss')
+axs[1].legend()
+axs[1].set_title('Training and Validation Loss')
 
-torch.save(model.state_dict(), 'osu_model.pth')
+plt.show()

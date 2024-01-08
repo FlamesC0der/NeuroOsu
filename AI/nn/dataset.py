@@ -17,14 +17,12 @@ class OsuDataset(Dataset):
             self.data = load_data(TEST_DIR)
 
     def __len__(self):
-        # print(f'data: {len(self.data)}')
-        # print(f'csv: {len(self.scv_data)}')
         return len(self.data)
 
     def __getitem__(self, idx):
         dat = self.data[idx]
 
-        t_img = torch.from_numpy(np.frombuffer(base64.b64decode(dat['img']), dtype=np.float32))
+        t_img = torch.from_numpy(np.frombuffer(base64.b64decode(dat['img']), dtype=np.float32).copy())
         t_pos = torch.tensor(dat['pos'])
 
         return {'img': t_img, 'label': t_pos}
