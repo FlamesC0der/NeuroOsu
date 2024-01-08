@@ -46,7 +46,7 @@ def main():
             x, y = x * w, y * h
             print(x, y)
 
-            pyautogui.click(x, y)
+            pyautogui.moveTo(x, y, 0.1)
 
 
 if __name__ == "__main__":

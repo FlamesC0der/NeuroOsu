@@ -29,7 +29,10 @@ test_loader = torch.utils.data.DataLoader(
 model = OsuModel()
 
 loss_fn = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999))
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
 
 def count_parameters(model):
@@ -44,14 +47,12 @@ def accuracy(pred, label):
 
 epochs = 10
 
-print(len(train_loader))
+print(f"====================Epochs: {epochs}\t Training dataset: {len(train_loader)}\t Validation dataset: {len(test_loader)}====================")
 
 train_acc_values = []
 train_loss_values = []
 val_loss_values = []
 val_acc_values = []
-
-print("started training\n")
 
 for epoch in range(epochs):
     # train
@@ -63,6 +64,8 @@ for epoch in range(epochs):
 
         optimizer.zero_grad()
         # label = F.one_hot(label, 2)
+        # label = label.squeeze()
+        # label = label.long()
 
         pred = model(img)
         loss = loss_fn(pred, label)
@@ -76,7 +79,7 @@ for epoch in range(epochs):
         acc = accuracy(pred, label)
         tr_acc += acc
 
-        pbar.set_description(f'Training Epoch [{epoch + 1}/{epochs}]\t loss: {loss_item:.5f}, accuracy: {acc:.3f}')
+        pbar.set_description(f'Training Epoch \t\t [{epoch + 1}/{epochs}] loss: {loss_item:.5f}\taccuracy: {acc:.3f}')
 
     avg_loss = tr_loss / len(train_loader)
     avg_acc = tr_acc / len(train_loader)
@@ -100,7 +103,7 @@ for epoch in range(epochs):
             acc = accuracy(pred, label)
             val_acc += acc
 
-            pbar.set_description(f'Validating Epoch [{epoch + 1}/{epochs}]\t loss: {loss_item:.5f}, accuracy: {acc:.3f}')
+            pbar.set_description(f'Validating Epoch \t [{epoch + 1}/{epochs}] loss: {loss_item:.5f}\taccuracy: {acc:.3f}')
 
     avg_val_loss = val_loss / len(test_loader)
     avg_val_acc = val_acc / len(test_loader)

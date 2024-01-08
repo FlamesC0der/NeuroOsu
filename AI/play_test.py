@@ -13,6 +13,9 @@ model = OsuModel()
 model.load_state_dict(torch.load('osu_model.pth'))
 model.eval()
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
+
 img = capture_screen()
 
 img = np.expand_dims(img, axis=0)
