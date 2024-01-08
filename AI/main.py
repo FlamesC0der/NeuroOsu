@@ -26,7 +26,6 @@ keyboard.add_hotkey("ctrl+shift+a", toggle)
 
 
 def main():
-    global c
     while True:
         img = capture_screen()
 

@@ -9,24 +9,29 @@ from settings import *
 from data.capture_screen import capture_screen
 from nn.model import OsuModel
 
-model = OsuModel()
-model.load_state_dict(torch.load('osu_model.pth'))
-model.eval()
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
+def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-img = capture_screen()
+    model = OsuModel().to(device)
+    model.load_state_dict(torch.load('osu_model.pth'))
+    model.eval()
 
-img = np.expand_dims(img, axis=0)
-img = np.expand_dims(img, axis=0)
+    img = capture_screen()
 
-img = torch.from_numpy(img)
+    img = np.expand_dims(img, axis=0)
+    img = np.expand_dims(img, axis=0)
 
-pred = model(img)
+    img = torch.from_numpy(img)
 
-x, y = F.softmax(pred).detach().numpy()[0]
-print(x, y)
-x, y = x * w, y * h
-print(x, y)
-pyautogui.click(x, y)
+    pred = model(img)
+
+    x, y = F.softmax(pred).detach().numpy()[0]
+    print(x, y)
+    x, y = x * w, y * h
+    print(x, y)
+    pyautogui.click(x, y)
+
+
+if __name__ == "__main__":
+    main()
