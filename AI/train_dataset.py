@@ -19,7 +19,7 @@ train_loader = torch.utils.data.DataLoader(
 )
 
 test_loader = torch.utils.data.DataLoader(
-    OsuDataset('train'),
+    OsuDataset('test'),
     batch_size=batch_size,
     shuffle=True,
     num_workers=0,
@@ -42,18 +42,22 @@ def accuracy(pred, label):
     return answer.mean()
 
 
-epochs = 20
+epochs = 10
 
 print(len(train_loader))
 
 train_acc_values = []
 train_loss_values = []
+val_loss_values = []
+val_acc_values = []
 
-print("\nstarted training\n")
+print("started training\n")
 
 for epoch in range(epochs):
-    loss_val = 0
-    acc_val = 0
+    # train
+
+    tr_loss = 0
+    tr_acc = 0
     for sample in (pbar := tqdm(train_loader)):
         img, label = sample['img'], sample['label']
 
@@ -67,36 +71,64 @@ for epoch in range(epochs):
         optimizer.step()
 
         loss_item = loss.item()
-        loss_val += loss_item
+        tr_loss += loss_item
 
-        acc_current = accuracy(pred, label)
-        acc_val += acc_current
+        acc = accuracy(pred, label)
+        tr_acc += acc
 
-        pbar.set_description(f'Epoch [{epoch + 1}/{epochs}] loss: {loss_item:.5f}, accuracy: {acc_current:.3f}')
+        pbar.set_description(f'Training Epoch [{epoch + 1}/{epochs}] loss: {loss_item:.5f}, accuracy: {acc:.3f}')
 
-    avg_loss = loss_val / len(train_loader)
-    avg_acc = acc_val / len(train_loader)
+    avg_loss = tr_loss / len(train_loader)
+    avg_acc = tr_acc / len(train_loader)
+
+    # test
+
+    val_loss = 0
+    val_acc = 0
+    model.eval()
+
+    with torch.no_grad():
+        for sample in (pbar := tqdm(test_loader)):
+            img, label = sample['img'], sample['label']
+
+            pred = model(img)
+            loss = loss_fn(pred, label)
+
+            loss_item = loss.item()
+            val_loss += loss.item()
+
+            acc = accuracy(pred, label)
+            val_acc += acc
+
+            pbar.set_description(f'Validating Epoch [{epoch + 1}/{epochs}] loss: {loss_item:.5f}, accuracy: {acc:.3f}')
+
+    avg_val_loss = val_loss / len(test_loader)
+    avg_val_acc = val_acc / len(test_loader)
 
     train_loss_values.append(avg_loss)
     train_acc_values.append(avg_acc)
+    val_loss_values.append(avg_val_loss)
+    val_acc_values.append(avg_val_acc)
 
-fig, ax1 = plt.subplots(figsize=(10, 5))
 
-color = 'tab:red'
-ax1.set_xlabel('Epoch')
-ax1.set_ylabel('Accuracy', color=color)
-ax1.plot(range(1, epochs + 1), train_acc_values, label="Training Accuracy", color=color)
-ax1.tick_params(axis='y', labelcolor=color)
-
-ax2 = ax1.twinx()
-color = 'tab:blue'
-ax2.set_ylabel('Loss', color=color)
-ax2.plot(range(1, epochs + 1), train_loss_values, label="Training Loss", color=color)
-ax2.tick_params(axis='y', labelcolor=color)
-
-fig.tight_layout()
-plt.title('Training Accuracy and Loss')
+# Accuracy
+plt.figure(figsize=(10, 5))
+plt.plot(range(1, epochs + 1), train_acc_values, label="Training Accuracy", color='tab:red')
+plt.plot(range(1, epochs + 1), val_acc_values, label="Validation Accuracy", color='tab:blue')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.title('Training and Validation Accuracy')
 plt.show()
 
+# Loss
+plt.figure(figsize=(10, 5))
+plt.plot(range(1, epochs + 1), train_loss_values, label="Training Loss", color='tab:red')
+plt.plot(range(1, epochs + 1), val_loss_values, label="Validation Loss", color='tab:blue')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Training and Validation Loss')
+plt.show()
 
 torch.save(model.state_dict(), 'osu_model.pth')

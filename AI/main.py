@@ -4,7 +4,7 @@ import pyautogui
 import numpy as np
 import cv2
 
-from settings import w, h
+from settings import *
 from data.capture_screen import capture_screen
 from nn.model import OsuModel
 
